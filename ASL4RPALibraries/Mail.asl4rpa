@@ -1,0 +1,47 @@
+/*
+* ------------------------------------------------------------------------------------------ 
+* ALS4RPA - UIMail Library
+* ------------------------------------------------------------------------------------------  
+ 
+ Specification with the ITLingo ASL V.1.3 language  
+ 
+ Authors: Carlos Correia and Alberto Rodrigues da Silva (Supervisor)  
+ 
+ Created Date: 2022/February 
+ Last Update:  2022/June      
+ 
+ Copyright  --------- 
+ 2016-2022 Alberto Rodrigues da Silva (coordinator) et al., Instituto Superior Técnico, 
+ Universidade de Lisboa. All rights reserved.  
+ 
+ This material is available for academic, research and commercial purpose, however, You 
+ should keep the authors and copyright notice.  
+ Any use of this software constitutes full acceptance of all terms of the software's license.    
+ 
+ Licence 
+ ------- 
+ 
+ This material is released under the Eclipse Public License (EPL) - Version 1.0. 
+ http://www.eclipse.org/legal/epl-v10.html    
+ 
+ General Information: ----------------- 
+ 
+ ASL4RPA library includes multiple elements that are reusable and applicable to different situations. 
+ ASL4RPA Libraries comprise a set of reusable ALS4RPA packages that can be imported 
+ and applied by other system packages. Each package includes the specification of several 
+ elements. For example, ASL4RPA allows importing libraries with the specifications of functions, 
+ robot operation types, or other elements.
+ 
+*/
+
+Package ASL4RPALibraries
+   
+System UIMail :Application  [
+	description "Mail is an library for mail rpa operations"]  
+
+RobotOperationType GmailSendMailWithNoAttachment("mailSender","password","mailReceiver","mailSubject","mailBody")
+RobotOperationType GmailSendMailWithAttachment("mailSender","password","mailReceiver","mailSubject","mailBody","filePath")
+RobotOperationType GmailSendMailWithAttachments("mailSender","password","mailReceiver","mailSubject","mailBody","AttachmentsCollection")
+
+RobotOperationType GmailReadAllInboxMail("mailSender","password")
+RobotOperationType GmailReadMailWithSpecificSubjectAndReply("mailSender","password","mailSubject","mailBody","specificSubject")
