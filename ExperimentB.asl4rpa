@@ -1,0 +1,172 @@
+/*
+* ------------------------------------------------------------------------------------------ 
+* ALS4RPA - EXPERIMENT B
+* ------------------------------------------------------------------------------------------  
+ 
+ Specification with the ITLingo ASL V.1.3 language   
+ 
+ Authors: Carlos Correia and Alberto Rodrigues da Silva (Supervisor)  
+ 
+ Created Date: 2022/February 
+ Last Update:  2022/June      
+ 
+ Copyright  --------- 
+ 2016-2022 Alberto Rodrigues da Silva (coordinator) et al., Instituto Superior Técnico, 
+ Universidade de Lisboa. All rights reserved.  
+ 
+ This material is available for academic, research and commercial purpose, however, You 
+ should keep the authors and copyright notice.  
+ Any use of this software constitutes full acceptance of all terms of the software's license.    
+ 
+ Licence 
+ ------- 
+ 
+ This material is released under the Eclipse Public License (EPL) - Version 1.0. 
+ http://www.eclipse.org/legal/epl-v10.html    
+ 
+ General Information: ----------------- 
+
+*/
+
+Package ASL4RPA
+    
+Import ASL4RPALibraries.* 
+   
+System ExperimentB : Application [   
+	description 
+	" Experiment B corresponds to a typically academic scenario where teachers repeatedly have to 
+    give feedback on projects or reports. This scenario automates the reading of an excel file 
+    containing two worksheets. In the first one, dedicated to groups, among other information, it is 
+    possible to visualise the group's name, the designation of the shift, and the path where the project 
+    documents reviewed by the teacher are. The second worksheet (dedicated to students) makes it possible 
+    to check each student's ID, name, email and group.
+	Given the above, the purpose of this automation is to consult this information and automatically send an 
+    email to each student with the revised files attached.
+	This scenario includes one task with the following main steps: 
+	•	Experiment B - S1: Check in the worksheet groups, all the group numbers, and the folder's path where 
+                     the project review files are stored for these groups.
+	•	Experiment B - S2: Verify in the worksheet students the students who make up the group previously verified 
+                     in the worksheet groups and register the id and email of each student in that group.
+	•	Experiment B - S3: After collecting the information about the id and email of all students belonging to a 
+                     group, it is sent an email to everyone with the project review files attached.
+	•	Experiment B - S4: Thus, to avoid congestion in the mailbox, a delay is given before sending the email 
+                     to the students in the next group."] 
+  
+Robot SendAnEmailWithProjectFeedback [description "As a Professor I want to send an email to students with project feedback" ]
+begin    	
+	variable basicPath : String := "C:\\Users\\Administrador\\Desktop\\Projeto-Entregas\\Grupos-AS\\"	  
+	variable completePath : String := ""
+ 	variable currentGroupFolderPath : String := "" 
+ 	variable currentPersonMail : String := ""
+ 	variable currentPersonId : String := ""
+ 	variable emailToSent : String := "" 
+ 	variable mailBody : String := "Good morning Dear Students, I inform you that due to the fact that I have been infected with COVID, I will not be able to teach classes next week. In this context, what is your availability in the following week to teach classes in the following periods: 1 - (24/04/22) from 2pm to 4pm. 2 - (25/04/22) from 20h to 22h. 3 - (26/04/22) from 1pm to 3pm." 
+  	variable mailSubject : String := "GPI - Availability for booking classes"
+  	variable mailSender : String := "martelo.correia.rpa@gmail.com"
+  	variable password : String := "istrpa2021"	     
+	variable filePath : String := "C:\\Users\\Administrador\\Desktop\\GPI2022-Groups-Students.xlsx"
+  	variable groupsWorksheet : String := "Groups"
+  	variable personsWorksheet : String := "Persons"
+  	variable currentGroupIdGW : String := ""
+  	variable currentGroupIdPW : String := ""
+  	variable shiftColumnName : String := "Shift Description"
+  	variable folderColumnName : String := "Folder"	 
+  	variable groupColumnName : String := "Group ID"	
+	variable personColumnName : String := "Group ID"
+ 	variable mailColumnName : String := "Email"	
+	variable personIdColumnName : String := "Person ID"	
+  	variable personId : String := ""	
+  	variable personIdPrefix : String := "-ist1"	
+  	variable semicolon : String := ";" 	
+  	variable quote : String := "\\"  
+  	variable attachmentsFiles : String[] := ""		
+	variable dataTableGW : DataTable := ""
+	variable dataTablePW : DataTable := ""		 
+ 	variable delayBetweenMails : TimeSpan := "5" 	     	
+	   
+	dataTableGW :=    [UIExcel.LoadRangeToDataTable (filePath, groupsWorksheet)]    
+	dataTablePW :=    [UIExcel.LoadRangeToDataTable (filePath, personsWorksheet)]
+	   
+	forEach (group in dataTableGW)         
+	begin       
+		currentGroupIdGW := [UIExcel.ReadCellDataByColumnName (groupsWorksheet, groupColumnName, filePath, #group)]
+		 
+		currentGroupFolderPath := [UIExcel.ReadCellDataByColumnName (groupsWorksheet, shiftColumnName, filePath, #group)]      				
+
+		forEach (person in dataTablePW)  
+		begin        
+		         
+			currentGroupIdPW := [UIExcel.ReadCellDataByColumnName (personsWorksheet, personColumnName, filePath, #person)]
+			
+			currentPersonMail := [UIExcel.ReadCellDataByColumnName (personsWorksheet, mailColumnName, filePath, #person)]
+								
+			currentPersonId := [UIExcel.ReadCellDataByColumnName (personsWorksheet, personIdColumnName, filePath, #person)] 
+		 	 
+			//Clean Variables  
+			if (currentPersonMail == "nan") 
+			then  
+				currentPersonMail := [""]  
+			endIf   
+			  
+			if (currentPersonMail == "None")      
+			then
+				currentPersonMail := [""]
+			endIf 
+			 			 
+			//Add Mail	 
+			if (emailToSent != "")	  
+			then 
+				if (currentGroupIdPW == currentGroupIdGW) 
+				then				
+					if (currentPersonMail != "")
+					then 
+						
+						emailToSent := [emailToSent + semicolon + currentPersonMail]
+			  	     
+					endIf 
+				endIf  
+			endIf  
+			 
+			//Add First Mail 
+			if (emailToSent == "")	
+			then
+				if (currentGroupIdPW == currentGroupIdGW) 
+				then				 
+					if (currentPersonMail != "") 
+					then 
+						
+						emailToSent := [currentPersonMail]			   
+					
+					endIf 
+				endIf   
+			endIf			 
+       
+			//Add Person
+			if (currentGroupIdPW == currentGroupIdGW) 
+				then				
+						
+				personId := [personId + personIdPrefix + currentPersonId]				   
+					 
+			endIf     
+		endForEach    
+		 
+		completePath := [basicPath + currentGroupFolderPath + quote + currentGroupIdGW + personId]
+		 
+		attachmentsFiles := [UIFiles.GetDirectoryFiles (completePath)]
+		   
+		UIMail.GmailSendMailWithAttachments (mailSender, password, emailToSent, mailSubject, mailBody, attachmentsFiles)
+	   
+		emailToSent := [""] 
+		
+		completePath := [""]
+		 
+		personId := [""]
+		
+		UIGeneral.TimerWait (delayBetweenMails)   
+		
+	endForEach 
+endRobot   
+
+
+
+
